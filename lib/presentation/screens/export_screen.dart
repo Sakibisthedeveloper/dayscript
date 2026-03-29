@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:typed_data';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import '../core/util/file_saver.dart';
 
 import '../bloc/diary/diary_bloc.dart';
 import '../../data/models/diary_entry_model.dart';
@@ -29,14 +30,12 @@ class ExportScreen extends StatelessWidget {
         ).toFirestore();
       }).toList();
 
-      for (var map in jsonList) {
-        map['date'] = (map['date']).toDate().toIso8601String();
-      }
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/dayscript_export.json');
+      final jsonContent = jsonEncode(jsonList);
+      await file.writeAsString(jsonContent);
+      await Share.shareXFiles([XFile(file.path)], text: 'DayScript Export');
 
-      await FileSaver.saveJson(
-        fileName: 'dayscript_export.json',
-        data: jsonList,
-      );
       if (context.mounted) {
          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('JSON export successful!')));
       }
@@ -74,10 +73,11 @@ class ExportScreen extends StatelessWidget {
         ),
       );
 
-      await FileSaver.savePdf(
-        fileName: 'dayscript_export.pdf',
-        bytes: await pdf.save(),
-      );
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/dayscript_export.pdf');
+      await file.writeAsBytes(await pdf.save());
+      await Share.shareXFiles([XFile(file.path)], text: 'DayScript PDF');
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF export successful!')));
       }

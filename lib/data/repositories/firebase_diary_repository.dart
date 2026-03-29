@@ -100,16 +100,11 @@ class FirebaseDiaryRepository implements DiaryRepository {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final ref = _storage.ref().child('users/$userId/images/$fileName');
       
-      late final FullMetadata metadata;
-      if (kIsWeb) {
-        metadata = FullMetadata(contentType: 'image/jpeg');
-      } else {
-        metadata = FullMetadata(contentType: 'image/jpeg');
-      }
+      final SettableMetadata metadata = SettableMetadata(contentType: 'image/jpeg');
 
       // Using putData with bytes is cross-platform compatible
       final bytes = await imageFile.readAsBytes();
-      final uploadTask = await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+      final uploadTask = await ref.putData(bytes, metadata);
       return await uploadTask.ref.getDownloadURL();
     } catch (e) {
       throw Exception('Failed to upload image: $e');

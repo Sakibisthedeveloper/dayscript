@@ -59,12 +59,20 @@ void main() async {
   );
 }
 
-class DayScriptApp extends StatelessWidget {
+class DayScriptApp extends StatefulWidget {
   const DayScriptApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final GoRouter router = GoRouter(
+  State<DayScriptApp> createState() => _DayScriptAppState();
+}
+
+class _DayScriptAppState extends State<DayScriptApp> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _router = GoRouter(
       initialLocation: '/',
       refreshListenable: GoRouterRefreshStream(context.read<AuthBloc>().stream),
       redirect: (context, state) {
@@ -139,11 +147,14 @@ class DayScriptApp extends StatelessWidget {
         ),
       ],
     );
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'DayScript',
       theme: AppTheme.lightTheme,
-      routerConfig: router,
+      routerConfig: _router,
       debugShowCheckedModeBanner: false,
     );
   }
