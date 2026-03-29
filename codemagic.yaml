@@ -5,11 +5,16 @@ workflows:
     environment:
       flutter: stable
     scripts:
-      - name: Generate android folder
-        script: flutter create . --platforms android
-      - name: Get Flutter packages
-        script: flutter pub get
-      - name: Build debug APK
-        script: flutter build apk --debug
+      - name: Step 1 - Create android folder
+        script: |
+          flutter create . --platforms android
+          echo "Android folder created"
+          ls -la
+      - name: Step 2 - Fix package name
+        script: |
+          flutter pub get
+      - name: Step 3 - Build APK
+        script: |
+          flutter build apk --debug --no-tree-shake-icons
     artifacts:
-      - build/app/outputs/flutter-apk/app-debug.apk
+      - build/app/outputs/flutter-apk/*.apk
