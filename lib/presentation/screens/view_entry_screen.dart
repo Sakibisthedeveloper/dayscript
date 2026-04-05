@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -168,9 +169,14 @@ class ViewEntryScreen extends StatelessWidget {
   Widget _buildGridImage(String url) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: Image.network(
-        url,
-        fit: BoxFit.cover,
+      child: Hero(
+        tag: url,
+        child: CachedNetworkImage(
+          imageUrl: url,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(color: Colors.grey[200]),
+          errorWidget: (context, url, error) => const Icon(Icons.error),
+        ),
       ),
     );
   }

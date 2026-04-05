@@ -78,9 +78,60 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         _selectedDay = selectedDay;
                         _focusedDay = focusedDay;
                       });
+                      
+                      final entriesForDay = _getEventsForDay(selectedDay, entries);
+                      showModalBottomSheet(
+                        context: context,
+                        backgroundColor: colors.surface,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+                        builder: (context) => DraggableScrollableSheet(
+                          initialChildSize: 0.5,
+                          minChildSize: 0.3,
+                          maxChildSize: 0.9,
+                          expand: false,
+                          builder: (context, scrollController) => ListView(
+                            controller: scrollController,
+                            padding: const EdgeInsets.all(24.0),
+                            children: [
+                              Center(
+                                child: Container(
+                                  width: 40,
+                                  height: 4,
+                                  margin: const EdgeInsets.only(bottom: 24),
+                                  decoration: BoxDecoration(color: colors.outlineVariant, borderRadius: BorderRadius.circular(4)),
+                                ),
+                              ),
+                              Text('Entries for ${selectedDay.day}/${selectedDay.month}', style: textTheme.titleLarge),
+                              const SizedBox(height: 16),
+                              if (entriesForDay.isEmpty)
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 32.0),
+                                  child: Center(child: Text('No entries on this day.')),
+                                ),
+                              ...entriesForDay.map((entry) => Card(
+                                elevation: 0,
+                                color: colors.surfaceContainerLowest,
+                                margin: const EdgeInsets.only(bottom: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                child: ListTile(
+                                  title: Text(entry.title.isNotEmpty ? entry.title : 'Untitled', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  subtitle: Text(entry.content, maxLines: 2, overflow: TextOverflow.ellipsis),
+                                  onTap: () {
+                                    context.pop(); // Close bottom sheet
+                                    context.push('/entry', extra: entry);
+                                  },
+                                ),
+                              )),
+                            ],
+                          ),
+                        ),
+                      );
                     },
                     calendarStyle: CalendarStyle(
                       markerDecoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
+                      markersMaxCount: 1,
+                      markerSize: 8.0,
                       selectedDecoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
                       todayDecoration: BoxDecoration(color: colors.primaryContainer.withOpacity(0.5), shape: BoxShape.circle),
                     ),
@@ -91,16 +142,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
-                Text('Entries for ${_selectedDay?.day}/${_selectedDay?.month}', style: textTheme.titleLarge),
-                const SizedBox(height: 16),
-                ...eventsToday.map((entry) => ListTile(
-                  title: Text(entry.title),
-                  subtitle: Text(entry.content, maxLines: 1),
-                  onTap: () => context.push('/entry', extra: entry),
-                )),
-                if (eventsToday.isEmpty)
-                   const Text('No entries on this day.'),
               ],
             ),
           );

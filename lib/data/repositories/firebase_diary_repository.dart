@@ -86,7 +86,7 @@ class FirebaseDiaryRepository implements DiaryRepository {
           final ref = _storage.refFromURL(url);
           await ref.delete();
         } catch (e) {
-          debugPrint('Failed to delete image $url: $e');
+          // Silent error handling for storage deletion
         }
       }
     } catch (e) {

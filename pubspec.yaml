@@ -29,11 +29,19 @@ dependencies:
   cloud_firestore: ^5.4.0
   firebase_storage: ^12.3.0
   google_sign_in: ^6.2.0
+  shimmer: ^3.0.0
+  connectivity_plus: ^6.0.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
+  flutter_native_splash: ^2.4.0
+
+flutter_native_splash:
+  color: "#3a38f1" # Deep Indigo from app_theme
+  android_12:
+    color: "#3a38f1"
 
 flutter:
   uses-material-design: true

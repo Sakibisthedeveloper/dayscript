@@ -89,7 +89,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(Unauthenticated());
       }
     } catch (e) {
-      emit(AuthError(e.toString()));
+      final msg = e.toString().replaceAll('Exception: ', '');
+      emit(AuthError(msg));
     }
   }
 
@@ -99,7 +100,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await _signOut();
       emit(Unauthenticated());
     } catch (e) {
-      emit(AuthError(e.toString()));
+      final msg = e.toString().replaceAll('Exception: ', '');
+      emit(AuthError(msg));
     }
   }
 }

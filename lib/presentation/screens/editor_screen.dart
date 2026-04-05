@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +24,8 @@ class _EditorScreenState extends State<EditorScreen> {
   String _currentMood = 'Reflective';
   List<String> _photoUrls = [];
   final ImagePicker _picker = ImagePicker();
+  Timer? _autoSaveTimer;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -33,10 +36,17 @@ class _EditorScreenState extends State<EditorScreen> {
       _currentMood = widget.entry!.mood;
       _photoUrls = List.from(widget.entry!.photoUrls);
     }
+    
+    _autoSaveTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (_hasChanges()) {
+        _autoSaveEntry();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _autoSaveTimer?.cancel();
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
@@ -58,6 +68,24 @@ class _EditorScreenState extends State<EditorScreen> {
     );
 
     context.read<DiaryBloc>().add(AddOrUpdateEntry(authState.user.uid, entry));
+  }
+
+  void _autoSaveEntry() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! Authenticated) return;
+    
+    final entry = DiaryEntry(
+      id: widget.entry?.id ?? const Uuid().v4(),
+      title: _titleController.text,
+      content: _contentController.text,
+      date: widget.entry?.date ?? DateTime.now(),
+      mood: _currentMood,
+      photoUrls: _photoUrls,
+      tags: widget.entry?.tags ?? [],
+      location: widget.entry?.location,
+    );
+
+    context.read<DiaryBloc>().add(AutoSaveEntry(authState.user.uid, entry));
   }
 
   Future<void> _pickImage() async {
@@ -107,11 +135,13 @@ class _EditorScreenState extends State<EditorScreen> {
         } else if (state is DiaryImageUploaded) {
           setState(() {
             _photoUrls.add(state.imageUrl);
+            _isUploading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image uploaded!')));
         } else if (state is DiaryImageUploading) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Uploading image...')));
+          setState(() => _isUploading = true);
         } else if (state is DiaryError) {
+          setState(() => _isUploading = false);
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: colors.error));
         }
       },
@@ -175,9 +205,21 @@ class _EditorScreenState extends State<EditorScreen> {
                   ),
                 )
               ],
+              bottom: _isUploading ? PreferredSize(
+                preferredSize: const Size.fromHeight(4.0),
+                child: LinearProgressIndicator(
+                  backgroundColor: colors.surfaceContainerHighest,
+                  color: colors.primary,
+                ),
+              ) : null,
             ),
             body: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: EdgeInsets.only(
+                left: 24.0, 
+                right: 24.0, 
+                top: 24.0, 
+                bottom: MediaQuery.of(context).viewInsets.bottom + 120.0
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

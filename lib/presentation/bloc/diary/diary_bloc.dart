@@ -34,6 +34,14 @@ class AddOrUpdateEntry extends DiaryEvent {
   List<Object> get props => [userId, entry];
 }
 
+class AutoSaveEntry extends DiaryEvent {
+  final String userId;
+  final DiaryEntry entry;
+  const AutoSaveEntry(this.userId, this.entry);
+  @override
+  List<Object> get props => [userId, entry];
+}
+
 class RemoveEntry extends DiaryEvent {
   final String userId;
   final DiaryEntry entry; // Changed to full entry
@@ -109,6 +117,7 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
     on<LoadEntries>(_onLoadEntries);
     on<LoadMoreEntries>(_onLoadMoreEntries);
     on<AddOrUpdateEntry>(_onAddOrUpdateEntry);
+    on<AutoSaveEntry>(_onAutoSaveEntry);
     on<RemoveEntry>(_onRemoveEntry);
     on<UploadImageEvent>(_onUploadImage);
   }
@@ -142,21 +151,63 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   }
 
   Future<void> _onAddOrUpdateEntry(AddOrUpdateEntry event, Emitter<DiaryState> emit) async {
+    List<DiaryEntry> oldEntries = [];
+    bool reachedMax = false;
+    List<DiaryEntry>? optimEntries;
+    
+    if (state is DiaryLoaded) {
+      final currentState = state as DiaryLoaded;
+      oldEntries = currentState.entries;
+      reachedMax = currentState.hasReachedMax;
+      
+      optimEntries = List.from(oldEntries);
+      final index = optimEntries.indexWhere((e) => e.id == event.entry.id);
+      if (index >= 0) {
+        optimEntries[index] = event.entry;
+      } else {
+        optimEntries.insert(0, event.entry);
+        optimEntries.sort((a,b) => b.date.compareTo(a.date));
+      }
+      emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax));
+    }
+
     try {
       await _saveEntry(event.userId, event.entry);
       emit(const DiaryEntryOperationSuccess('Entry saved successfully!'));
-      add(LoadEntries(event.userId));
+      if (optimEntries != null) emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax));
     } catch (e) {
+      if (oldEntries.isNotEmpty) emit(DiaryLoaded(oldEntries, hasReachedMax: reachedMax));
       emit(DiaryError(e.toString()));
     }
   }
 
+  Future<void> _onAutoSaveEntry(AutoSaveEntry event, Emitter<DiaryState> emit) async {
+    // Silent background save
+    try {
+      await _saveEntry(event.userId, event.entry);
+    } catch (_) {}
+  }
+
   Future<void> _onRemoveEntry(RemoveEntry event, Emitter<DiaryState> emit) async {
+    List<DiaryEntry> oldEntries = [];
+    bool reachedMax = false;
+    List<DiaryEntry>? optimEntries;
+    
+    if (state is DiaryLoaded) {
+      final currentState = state as DiaryLoaded;
+      oldEntries = currentState.entries;
+      reachedMax = currentState.hasReachedMax;
+      
+      optimEntries = List.from(oldEntries)..removeWhere((e) => e.id == event.entry.id);
+      emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax));
+    }
+
     try {
       await _deleteEntry(event.userId, event.entry);
       emit(const DiaryEntryOperationSuccess('Entry deleted successfully!'));
-      add(LoadEntries(event.userId));
+      if (optimEntries != null) emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax));
     } catch (e) {
+      if (oldEntries.isNotEmpty) emit(DiaryLoaded(oldEntries, hasReachedMax: reachedMax));
       emit(DiaryError(e.toString()));
     }
   }

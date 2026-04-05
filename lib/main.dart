@@ -13,7 +13,9 @@ import 'data/repositories/firebase_diary_repository.dart';
 import 'domain/usecases/auth_usecases.dart';
 import 'domain/usecases/diary_usecases.dart';
 import 'firebase_options.dart';
+import 'package:flutter/services.dart';
 
+import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/sign_in_screen.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/editor_screen.dart';
@@ -29,7 +31,7 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   } catch(e) {
-    debugPrint("Firebase not initialized: $e");
+    // Handling error silently or via logs
   }
   
   final authRepository = FirebaseAuthRepository();
@@ -73,11 +75,14 @@ class _DayScriptAppState extends State<DayScriptApp> {
   void initState() {
     super.initState();
     _router = GoRouter(
-      initialLocation: '/',
+      initialLocation: '/splash',
       refreshListenable: GoRouterRefreshStream(context.read<AuthBloc>().stream),
       redirect: (context, state) {
         final authState = context.read<AuthBloc>().state;
         final bool loggingIn = state.matchedLocation == '/login';
+        final bool isSplash = state.matchedLocation == '/splash';
+
+        if (isSplash) return null;
 
         if (authState is! Authenticated) {
           return loggingIn ? null : '/login';
@@ -90,6 +95,13 @@ class _DayScriptAppState extends State<DayScriptApp> {
         return null;
       },
       routes: [
+        GoRoute(
+          path: '/splash',
+          pageBuilder: (context, state) => const CustomTransitionPage(
+            child: SplashScreen(),
+            transitionsBuilder: _fadeTransition,
+          ),
+        ),
         GoRoute(
           path: '/',
           pageBuilder: (context, state) => const CustomTransitionPage(
@@ -151,6 +163,14 @@ class _DayScriptAppState extends State<DayScriptApp> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: AppTheme.background,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
     return MaterialApp.router(
       title: 'DayScript',
       theme: AppTheme.lightTheme,

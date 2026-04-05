@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -30,6 +31,11 @@ class FirebaseAuthRepository implements AuthRepository {
       final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
       return userCredential.user;
     } catch (e) {
+      if (e is SocketException) {
+        throw Exception('No internet connection. Please check your network and try again.');
+      } else if (e is FirebaseAuthException) {
+        throw Exception(e.message ?? 'An unknown authentication error occurred.');
+      }
       throw Exception('Failed to sign in with Google: $e');
     }
   }

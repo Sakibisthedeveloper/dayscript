@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/diary_entry.dart';
+import 'package:shimmer/shimmer.dart';
 import '../bloc/diary/diary_bloc.dart';
 import '../bloc/auth/auth_bloc.dart';
 
@@ -81,7 +82,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 slivers: [
                   SliverAppBar(
                     floating: true,
-                    backgroundColor: colors.surface.withOpacity(0.9),
+                    backgroundColor: Colors.transparent,
+                    flexibleSpace: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            colors.surface.withOpacity(0.9),
+                            colors.surface.withOpacity(0.4),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                      ),
+                    ),
                     title: Text('DayScript', style: textTheme.titleLarge?.copyWith(color: colors.primary, fontWeight: FontWeight.w800)),
                     actions: [
                       Padding(
@@ -116,8 +129,31 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   BlocBuilder<DiaryBloc, DiaryState>(
                     builder: (context, state) {
                       if (state is DiaryInitial || (state is DiaryLoading && state is! DiaryLoaded)) {
-                        context.read<DiaryBloc>().add(LoadEntries(user.uid));
-                        return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
+                        if (state is DiaryInitial) {
+                          context.read<DiaryBloc>().add(LoadEntries(user.uid));
+                        }
+                        return SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                return Shimmer.fromColors(
+                                  baseColor: colors.surfaceContainerHighest,
+                                  highlightColor: colors.surface,
+                                  child: Container(
+                                    height: 180,
+                                    margin: const EdgeInsets.only(bottom: 24),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                );
+                              },
+                              childCount: 4,
+                            ),
+                          ),
+                        );
                       } else if (state is DiaryLoaded) {
                         if (state.entries.isEmpty) {
                           return SliverFillRemaining(
@@ -126,12 +162,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.auto_stories, size: 80, color: colors.primary.withOpacity(0.2)),
+                                  Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: colors.primary.withOpacity(0.05),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.history_edu, size: 60, color: colors.primary.withOpacity(0.4)),
+                                  ),
                                   const SizedBox(height: 24),
                                   Text(
                                     'Your story begins here...',
                                     textAlign: TextAlign.center,
-                                    style: textTheme.titleLarge?.copyWith(color: colors.outline),
+                                    style: textTheme.titleLarge?.copyWith(color: colors.onSurfaceVariant),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
