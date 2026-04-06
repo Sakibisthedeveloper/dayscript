@@ -102,10 +102,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     actions: [
                       Padding(
                         padding: const EdgeInsets.only(right: 16.0),
-                        child: CircleAvatar(
-                          backgroundImage: user.photoURL != null ? NetworkImage(user.photoURL!) : null,
-                          backgroundColor: colors.primaryContainer,
-                          child: user.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
+                        child: GestureDetector(
+                          onTap: () => context.push('/profile'),
+                          child: CircleAvatar(
+                            backgroundImage: user.photoURL != null ? NetworkImage(user.photoURL!) : null,
+                            backgroundColor: colors.primaryContainer,
+                            child: user.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
+                          ),
                         ),
                       )
                     ],

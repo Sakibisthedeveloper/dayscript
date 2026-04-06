@@ -23,6 +23,9 @@ import 'presentation/screens/view_entry_screen.dart';
 import 'presentation/screens/calendar_screen.dart';
 import 'presentation/screens/search_screen.dart';
 import 'presentation/screens/export_screen.dart';
+import 'presentation/screens/profile_screen.dart';
+import 'presentation/bloc/theme/theme_cubit.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +37,8 @@ void main() async {
     // Handling error silently or via logs
   }
   
+  final prefs = await SharedPreferences.getInstance();
+
   final authRepository = FirebaseAuthRepository();
   final diaryRepository = FirebaseDiaryRepository();
 
@@ -53,6 +58,9 @@ void main() async {
             saveEntry: SaveEntry(diaryRepository),
             deleteEntry: DeleteEntry(diaryRepository),
           ),
+        ),
+        BlocProvider(
+          create: (context) => ThemeCubit(prefs),
         ),
       ],
       child: const DayScriptApp(),
@@ -156,25 +164,39 @@ class _DayScriptAppState extends State<DayScriptApp> {
             transitionsBuilder: _fadeTransition,
           ),
         ),
+        GoRoute(
+          path: '/profile',
+          pageBuilder: (context, state) => const CustomTransitionPage(
+            child: ProfileScreen(),
+            transitionsBuilder: _fadeTransition,
+          ),
+        ),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: AppTheme.background,
-        systemNavigationBarIconBrightness: Brightness.dark,
-      ),
-    );
-    return MaterialApp.router(
-      title: 'DayScript',
-      theme: AppTheme.lightTheme,
-      routerConfig: _router,
-      debugShowCheckedModeBanner: false,
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        final isDark = themeMode == ThemeMode.dark;
+        SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+            systemNavigationBarColor: isDark ? const Color(0xFF121212) : AppTheme.background,
+            systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          ),
+        );
+        return MaterialApp.router(
+          title: 'DayScript',
+          themeMode: themeMode,
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          routerConfig: _router,
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }

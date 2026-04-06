@@ -93,4 +93,59 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: const ColorScheme(
+        brightness: Brightness.dark,
+        primary: primary,
+        onPrimary: onPrimary,
+        primaryContainer: primaryContainer,
+        onPrimaryContainer: onPrimaryContainer,
+        secondary: secondary,
+        onSecondary: onSecondary,
+        secondaryContainer: secondaryContainer,
+        onSecondaryContainer: onSecondaryContainer,
+        tertiary: tertiary,
+        onTertiary: onTertiary,
+        tertiaryContainer: tertiaryContainer,
+        onTertiaryContainer: onTertiaryContainer,
+        error: error,
+        onError: onError,
+        errorContainer: errorContainer,
+        onErrorContainer: onErrorContainer,
+        surface: Color(0xFF1E1E1E), // Cards #1E1E1E
+        onSurface: Color(0xFFE0E0E0),
+      ),
+      scaffoldBackgroundColor: const Color(0xFF121212), // Background #121212
+      textTheme: GoogleFonts.plusJakartaSansTextTheme().copyWith(
+        displayLarge: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0), fontWeight: FontWeight.w800),
+        displayMedium: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0), fontWeight: FontWeight.w800),
+        displaySmall: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0), fontWeight: FontWeight.w700),
+        headlineLarge: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0), fontWeight: FontWeight.w700),
+        headlineMedium: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0), fontWeight: FontWeight.w600),
+        headlineSmall: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0), fontWeight: FontWeight.w600),
+        titleLarge: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0), fontWeight: FontWeight.w600),
+        titleMedium: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0), fontWeight: FontWeight.w500),
+        titleSmall: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0), fontWeight: FontWeight.w500),
+        bodyLarge: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0)),
+        bodyMedium: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0)),
+        bodySmall: GoogleFonts.plusJakartaSans(color: const Color(0xFF9E9E9E)),
+        labelLarge: GoogleFonts.plusJakartaSans(color: const Color(0xFFE0E0E0), fontWeight: FontWeight.w600),
+        labelMedium: GoogleFonts.plusJakartaSans(color: const Color(0xFF9E9E9E), fontWeight: FontWeight.w500),
+        labelSmall: GoogleFonts.plusJakartaSans(color: const Color(0xFF9E9E9E), fontWeight: FontWeight.w500),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF1E1E1E),
+        foregroundColor: Color(0xFFE0E0E0),
+        elevation: 0,
+        centerTitle: true,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: primary,
+        foregroundColor: onPrimaryContainer,
+      ),
+    );
+  }
 }
