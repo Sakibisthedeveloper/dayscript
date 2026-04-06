@@ -12,17 +12,8 @@ import 'data/repositories/firebase_auth_repository.dart';
 import 'data/repositories/firebase_diary_repository.dart';
 import 'domain/usecases/auth_usecases.dart';
 import 'domain/usecases/diary_usecases.dart';
-import 'firebase_options.dart';
-import 'package:flutter/services.dart';
-
-import 'presentation/screens/splash_screen.dart';
-import 'presentation/screens/sign_in_screen.dart';
-import 'presentation/screens/home_screen.dart';
-import 'presentation/screens/editor_screen.dart';
-import 'presentation/screens/view_entry_screen.dart';
-import 'presentation/screens/calendar_screen.dart';
-import 'presentation/screens/search_screen.dart';
-import 'presentation/screens/export_screen.dart';
+import 'core/theme/theme_cubit.dart';
+import 'presentation/screens/profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,6 +44,9 @@ void main() async {
             saveEntry: SaveEntry(diaryRepository),
             deleteEntry: DeleteEntry(diaryRepository),
           ),
+        ),
+        BlocProvider(
+          create: (context) => ThemeCubit(),
         ),
       ],
       child: const DayScriptApp(),
@@ -88,7 +82,7 @@ class _DayScriptAppState extends State<DayScriptApp> {
         }
 
         if (loggingIn) {
-          return '/';
+          return '/home';
         }
 
         return null;
@@ -103,6 +97,10 @@ class _DayScriptAppState extends State<DayScriptApp> {
         ),
         GoRoute(
           path: '/',
+          redirect: (_, __) => '/home',
+        ),
+        GoRoute(
+          path: '/home',
           pageBuilder: (context, state) => const CustomTransitionPage(
             child: HomeScreen(),
             transitionsBuilder: _fadeTransition,
@@ -112,6 +110,13 @@ class _DayScriptAppState extends State<DayScriptApp> {
           path: '/login',
           pageBuilder: (context, state) => const CustomTransitionPage(
             child: SignInScreen(),
+            transitionsBuilder: _fadeTransition,
+          ),
+        ),
+        GoRoute(
+          path: '/profile',
+          pageBuilder: (context, state) => const CustomTransitionPage(
+            child: ProfileScreen(),
             transitionsBuilder: _fadeTransition,
           ),
         ),
@@ -162,19 +167,17 @@ class _DayScriptAppState extends State<DayScriptApp> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: AppTheme.background,
-        systemNavigationBarIconBrightness: Brightness.dark,
-      ),
-    );
-    return MaterialApp.router(
-      title: 'DayScript',
-      theme: AppTheme.lightTheme,
-      routerConfig: _router,
-      debugShowCheckedModeBanner: false,
+    return BlocBuilder<ThemeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        return MaterialApp.router(
+          title: 'DayScript',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          routerConfig: _router,
+          debugShowCheckedModeBanner: false,
+        );
+      },
     );
   }
 }

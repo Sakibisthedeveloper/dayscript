@@ -102,10 +102,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     actions: [
                       Padding(
                         padding: const EdgeInsets.only(right: 16.0),
-                        child: CircleAvatar(
-                          backgroundImage: user.photoURL != null ? NetworkImage(user.photoURL!) : null,
-                          backgroundColor: colors.primaryContainer,
-                          child: user.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
+                        child: GestureDetector(
+                          onTap: () => context.push('/profile'),
+                          child: Hero(
+                            tag: 'profile_avatar',
+                            child: CircleAvatar(
+                              backgroundImage: user.photoURL != null ? NetworkImage(user.photoURL!) : null,
+                              backgroundColor: colors.primaryContainer,
+                              child: user.photoURL == null ? const Icon(Icons.person, color: Colors.white) : null,
+                            ),
+                          ),
                         ),
                       )
                     ],
@@ -250,13 +256,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         margin: const EdgeInsets.only(bottom: 24),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colors.outline.withOpacity(0.08)),
           boxShadow: [
             BoxShadow(
-              color: colors.primary.withOpacity(0.04),
-              blurRadius: 32,
-              offset: const Offset(0, 24),
+              color: colors.primary.withOpacity(0.06),
+              blurRadius: 24,
+              offset: const Offset(0, 16),
             )
           ],
         ),

@@ -158,12 +158,19 @@ class _EditorScreenState extends State<EditorScreen> {
           current is DiaryError,
       listener: (context, state) {
         if (state is DiaryEntryOperationSuccess) {
+          context.go('/home');
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Entry saved!'),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Text('Entry saved! ✓', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+              ],
+            ),
             behavior: SnackBarBehavior.floating,
             backgroundColor: colors.primary,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ));
-          context.go('/home');
         } else if (state is DiaryError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: colors.error),
