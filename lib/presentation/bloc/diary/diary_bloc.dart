@@ -1,4 +1,3 @@
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../domain/entities/diary_entry.dart';
@@ -50,14 +49,6 @@ class RemoveEntry extends DiaryEvent {
   List<Object> get props => [userId, entry];
 }
 
-class UploadImageEvent extends DiaryEvent {
-  final String userId;
-  final XFile file;
-  const UploadImageEvent(this.userId, this.file);
-  @override
-  List<Object> get props => [userId, file];
-}
-
 // States
 abstract class DiaryState extends Equatable {
   const DiaryState();
@@ -82,14 +73,6 @@ class DiaryEntryOperationSuccess extends DiaryState {
   List<Object?> get props => [message];
 }
 
-class DiaryImageUploading extends DiaryState {}
-class DiaryImageUploaded extends DiaryState {
-  final String imageUrl;
-  const DiaryImageUploaded(this.imageUrl);
-  @override
-  List<Object?> get props => [imageUrl];
-}
-
 class DiaryError extends DiaryState {
   final String message;
   const DiaryError(this.message);
@@ -102,25 +85,21 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   final GetEntries _getEntries;
   final SaveEntry _saveEntry;
   final DeleteEntry _deleteEntry;
-  final UploadImage _uploadImage;
   bool _isLoadingMore = false; // Fix 2: guard against concurrent loads
 
   DiaryBloc({
     required GetEntries getEntries,
     required SaveEntry saveEntry,
     required DeleteEntry deleteEntry,
-    required UploadImage uploadImage,
   })  : _getEntries = getEntries,
         _saveEntry = saveEntry,
         _deleteEntry = deleteEntry,
-        _uploadImage = uploadImage,
         super(DiaryInitial()) {
     on<LoadEntries>(_onLoadEntries);
     on<LoadMoreEntries>(_onLoadMoreEntries);
     on<AddOrUpdateEntry>(_onAddOrUpdateEntry);
     on<AutoSaveEntry>(_onAutoSaveEntry);
     on<RemoveEntry>(_onRemoveEntry);
-    on<UploadImageEvent>(_onUploadImage);
   }
 
   Future<void> _onLoadEntries(LoadEntries event, Emitter<DiaryState> emit) async {
@@ -217,14 +196,5 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
     }
   }
 
-  Future<void> _onUploadImage(UploadImageEvent event, Emitter<DiaryState> emit) async {
-    emit(DiaryImageUploading());
-    try {
-      final imageUrl = await _uploadImage(event.userId, event.file);
-      emit(DiaryImageUploaded(imageUrl));
-    } catch (e) {
-      emit(DiaryError(e.toString()));
-    }
-  }
 }
 

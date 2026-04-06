@@ -8,7 +8,6 @@ class DiaryEntryModel extends DiaryEntry {
     required String content,
     required DateTime date,
     required String mood,
-    required List<String> photoUrls,
     required List<String> tags,
     String? location,
   }) : super(
@@ -17,7 +16,6 @@ class DiaryEntryModel extends DiaryEntry {
           content: content,
           date: date,
           mood: mood,
-          photoUrls: photoUrls,
           tags: tags,
           location: location,
         );
@@ -30,7 +28,6 @@ class DiaryEntryModel extends DiaryEntry {
       content: data['content'] ?? '',
       date: (data['date'] as Timestamp).toDate(),
       mood: data['mood'] ?? 'Reflective',
-      photoUrls: List<String>.from(data['photoUrls'] ?? []),
       tags: List<String>.from(data['tags'] ?? []),
       location: data['location'],
     );
@@ -42,7 +39,6 @@ class DiaryEntryModel extends DiaryEntry {
       'content': content,
       'date': Timestamp.fromDate(date),
       'mood': mood,
-      'photoUrls': photoUrls,
       'tags': tags,
       'location': location,
     };

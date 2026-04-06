@@ -1,19 +1,14 @@
-import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import '../../domain/entities/diary_entry.dart';
 import '../../domain/repositories/diary_repository.dart';
 import '../models/diary_entry_model.dart';
 
 class FirebaseDiaryRepository implements DiaryRepository {
   final FirebaseFirestore _firestore;
-  final FirebaseStorage _storage;
 
   FirebaseDiaryRepository({
     FirebaseFirestore? firestore,
-    FirebaseStorage? storage,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _storage = storage ?? FirebaseStorage.instance;
+  })  : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference _getCollection(String userId) {
     return _firestore.collection('users').doc(userId).collection('entries');
@@ -57,7 +52,6 @@ class FirebaseDiaryRepository implements DiaryRepository {
         content: entry.content,
         date: entry.date,
         mood: entry.mood,
-        photoUrls: entry.photoUrls,
         tags: entry.tags,
         location: entry.location,
       );
@@ -76,58 +70,9 @@ class FirebaseDiaryRepository implements DiaryRepository {
   Future<void> deleteEntry(String userId, DiaryEntry entry) async {
     try {
       await _getCollection(userId).doc(entry.id).delete();
-
-      for (final url in entry.photoUrls) {
-        try {
-          final ref = _storage.refFromURL(url);
-          await ref.delete();
-        } catch (_) {
-          // Silent: best-effort cleanup of storage files
-        }
-      }
     } catch (e) {
       throw Exception('Failed to delete entry: $e');
     }
   }
 
-  @override
-  Future<String> uploadImage(String userId, XFile imageFile) async {
-    try {
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = '$timestamp.jpg';
-      // Path: users/{userId}/images/{timestamp}.jpg
-      final ref = _storage
-          .ref()
-          .child('users')
-          .child(userId)
-          .child('images')
-          .child(fileName);
-
-      final bytes = await imageFile.readAsBytes();
-      final metadata = SettableMetadata(
-        contentType: 'image/jpeg',
-        customMetadata: {'uploadedBy': userId},
-      );
-
-      final uploadTask = ref.putData(bytes, metadata);
-
-      // Listen to task state for better error reporting
-      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-        // Progress available if needed in the future
-      }, onError: (_) {});
-
-      final snapshot = await uploadTask;
-
-      if (snapshot.state != TaskState.success) {
-        throw Exception('Upload did not complete successfully (state: ${snapshot.state})');
-      }
-
-      return await snapshot.ref.getDownloadURL();
-    } on FirebaseException catch (e) {
-      // Surface the real Firebase error code & message
-      throw Exception('[${e.code}] ${e.message ?? 'Firebase Storage error'}');
-    } catch (e) {
-      throw Exception('Failed to upload image: $e');
-    }
-  }
 }

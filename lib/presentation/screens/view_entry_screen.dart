@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../domain/entities/diary_entry.dart';
@@ -46,7 +44,7 @@ class ViewEntryScreen extends StatelessWidget {
                     ],
                   ),
                   content: const Text(
-                    'Are you sure you want to delete this entry? This action cannot be undone and will also delete associated photos.',
+                    'Are you sure you want to delete this entry? This action cannot be undone.',
                   ),
                   actions: [
                     OutlinedButton(
@@ -148,46 +146,6 @@ class ViewEntryScreen extends StatelessWidget {
                 style: textTheme.titleMedium?.copyWith(height: 1.7, fontWeight: FontWeight.normal),
               ),
             ),
-            // Photo Grid Section (Asymmetric Bento Style)
-            if (entry.photoUrls.isNotEmpty) ...[
-              const SizedBox(height: 32),
-              Text(
-                'CAPTURED MOMENTS',
-                style: textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2.0,
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 16),
-              StaggeredGrid.count(
-                crossAxisCount: 12,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                children: [
-                  // Main Large Image
-                  if (entry.photoUrls.isNotEmpty)
-                    StaggeredGridTile.count(
-                      crossAxisCellCount: 8,
-                      mainAxisCellCount: 8,
-                      child: _buildGridImage(entry.photoUrls[0]),
-                    ),
-                  // Smaller images
-                  if (entry.photoUrls.length > 1)
-                    StaggeredGridTile.count(
-                      crossAxisCellCount: 4,
-                      mainAxisCellCount: 4,
-                      child: _buildGridImage(entry.photoUrls[1]),
-                    ),
-                  if (entry.photoUrls.length > 2)
-                    StaggeredGridTile.count(
-                      crossAxisCellCount: 4,
-                      mainAxisCellCount: 4,
-                      child: _buildGridImage(entry.photoUrls[2]),
-                    ),
-                ],
-              ),
-            ],
             // Tags
             if (entry.tags.isNotEmpty) ...[
               const SizedBox(height: 32),
@@ -206,19 +164,5 @@ class ViewEntryScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildGridImage(String url) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Hero(
-        tag: url,
-        child: CachedNetworkImage(
-          imageUrl: url,
-          fit: BoxFit.cover,
-          placeholder: (context, url) => Container(color: Colors.grey[200]),
-          errorWidget: (context, url, error) => const Icon(Icons.error),
-        ),
-      ),
-    );
-  }
 }
+

@@ -6,7 +6,6 @@ class DiaryEntry extends Equatable {
   final String content;
   final DateTime date;
   final String mood;
-  final List<String> photoUrls;
   final List<String> tags;
   final String? location;
 
@@ -16,7 +15,6 @@ class DiaryEntry extends Equatable {
     required this.content,
     required this.date,
     required this.mood,
-    required this.photoUrls,
     required this.tags,
     this.location,
   });
@@ -27,7 +25,6 @@ class DiaryEntry extends Equatable {
     String? content,
     DateTime? date,
     String? mood,
-    List<String>? photoUrls,
     List<String>? tags,
     String? location,
   }) {
@@ -37,12 +34,11 @@ class DiaryEntry extends Equatable {
       content: content ?? this.content,
       date: date ?? this.date,
       mood: mood ?? this.mood,
-      photoUrls: photoUrls ?? this.photoUrls,
       tags: tags ?? this.tags,
       location: location ?? this.location,
     );
   }
 
   @override
-  List<Object?> get props => [id, title, content, date, mood, photoUrls, tags, location];
+  List<Object?> get props => [id, title, content, date, mood, tags, location];
 }

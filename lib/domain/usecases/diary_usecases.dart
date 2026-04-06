@@ -1,4 +1,3 @@
-import 'package:image_picker/image_picker.dart';
 import '../entities/diary_entry.dart';
 import '../repositories/diary_repository.dart';
 
@@ -26,14 +25,5 @@ class DeleteEntry {
 
   Future<void> call(String userId, DiaryEntry entry) async {
     await repository.deleteEntry(userId, entry);
-  }
-}
-
-class UploadImage {
-  final DiaryRepository repository;
-  UploadImage(this.repository);
-
-  Future<String> call(String userId, XFile imageFile) async {
-    return await repository.uploadImage(userId, imageFile);
   }
 }

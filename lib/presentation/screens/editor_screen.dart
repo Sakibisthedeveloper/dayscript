@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/diary_entry.dart';
@@ -23,10 +21,7 @@ class _EditorScreenState extends State<EditorScreen> {
   late TextEditingController _titleController;
   late TextEditingController _contentController;
   String _currentMood = 'Reflective';
-  List<String> _photoUrls = [];
-  final ImagePicker _picker = ImagePicker();
   Timer? _autoSaveTimer;
-  bool _isUploading = false;
   double _fontSize = 16.0; // Fix 3: font size state
 
   static const List<_FontSizeOption> _fontSizeOptions = [
@@ -43,7 +38,6 @@ class _EditorScreenState extends State<EditorScreen> {
     _contentController = TextEditingController(text: widget.entry?.content ?? '');
     if (widget.entry != null) {
       _currentMood = widget.entry!.mood;
-      _photoUrls = List.from(widget.entry!.photoUrls);
     }
 
     _autoSaveTimer = Timer.periodic(const Duration(seconds: 30), (_) {
@@ -69,7 +63,6 @@ class _EditorScreenState extends State<EditorScreen> {
       content: _contentController.text,
       date: widget.entry?.date ?? DateTime.now(),
       mood: _currentMood,
-      photoUrls: _photoUrls,
       tags: widget.entry?.tags ?? [],
       location: widget.entry?.location,
     );
@@ -87,7 +80,6 @@ class _EditorScreenState extends State<EditorScreen> {
       content: _contentController.text,
       date: widget.entry?.date ?? DateTime.now(),
       mood: _currentMood,
-      photoUrls: _photoUrls,
       tags: widget.entry?.tags ?? [],
       location: widget.entry?.location,
     );
@@ -95,26 +87,7 @@ class _EditorScreenState extends State<EditorScreen> {
     context.read<DiaryBloc>().add(AutoSaveEntry(authState.user.uid, entry));
   }
 
-  Future<void> _pickImage() async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 60,
-      );
-      if (image != null && mounted) {
-        final authState = context.read<AuthBloc>().state;
-        if (authState is Authenticated) {
-          context.read<DiaryBloc>().add(UploadImageEvent(authState.user.uid, image));
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not pick image: $e')),
-        );
-      }
-    }
-  }
+
 
   // Fix 3: Show font size picker bottom sheet
   void _showFontSizePicker() {
@@ -167,12 +140,9 @@ class _EditorScreenState extends State<EditorScreen> {
     final originalTitle = widget.entry?.title ?? '';
     final originalContent = widget.entry?.content ?? '';
     final originalMood = widget.entry?.mood ?? 'Reflective';
-    final originalPhotos = widget.entry?.photoUrls ?? [];
-
     return _titleController.text != originalTitle ||
         _contentController.text != originalContent ||
-        _currentMood != originalMood ||
-        _photoUrls.length != originalPhotos.length;
+        _currentMood != originalMood;
   }
 
   @override
@@ -185,8 +155,6 @@ class _EditorScreenState extends State<EditorScreen> {
       // Fix 2: Only listen to upload/save states, not every diary state
       listenWhen: (previous, current) =>
           current is DiaryEntryOperationSuccess ||
-          current is DiaryImageUploaded ||
-          current is DiaryImageUploading ||
           current is DiaryError,
       listener: (context, state) {
         if (state is DiaryEntryOperationSuccess) {
@@ -196,18 +164,7 @@ class _EditorScreenState extends State<EditorScreen> {
             backgroundColor: colors.primary,
           ));
           context.pop();
-        } else if (state is DiaryImageUploaded) {
-          setState(() {
-            _photoUrls.add(state.imageUrl);
-            _isUploading = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Image uploaded!')),
-          );
-        } else if (state is DiaryImageUploading) {
-          setState(() => _isUploading = true);
         } else if (state is DiaryError) {
-          setState(() => _isUploading = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: colors.error),
           );
@@ -279,15 +236,6 @@ class _EditorScreenState extends State<EditorScreen> {
                   ),
                 ),
               ],
-              bottom: _isUploading
-                  ? PreferredSize(
-                      preferredSize: const Size.fromHeight(4.0),
-                      child: LinearProgressIndicator(
-                        backgroundColor: colors.surfaceContainerHighest,
-                        color: colors.primary,
-                      ),
-                    )
-                  : null,
             ),
             body: SingleChildScrollView(
               padding: EdgeInsets.only(
@@ -323,61 +271,6 @@ class _EditorScreenState extends State<EditorScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Fix 2: Use CachedNetworkImage for lazy loading
-                  if (_photoUrls.isNotEmpty)
-                    SizedBox(
-                      height: 120,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _photoUrls.length,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 12.0),
-                            child: Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: CachedNetworkImage(
-                                    imageUrl: _photoUrls[index],
-                                    height: 120,
-                                    width: 120,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => Container(
-                                      height: 120,
-                                      width: 120,
-                                      color: colors.surfaceContainerHighest,
-                                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                                    ),
-                                    errorWidget: (context, url, error) => Container(
-                                      height: 120,
-                                      width: 120,
-                                      color: colors.errorContainer,
-                                      child: Icon(Icons.broken_image, color: colors.error),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 4,
-                                  right: 4,
-                                  child: GestureDetector(
-                                    onTap: () => setState(() => _photoUrls.removeAt(index)),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.black54,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(Icons.close, size: 16, color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  if (_photoUrls.isNotEmpty) const SizedBox(height: 24),
                   // Fix 3: Apply _fontSize to text field
                   TextField(
                     controller: _contentController,
@@ -417,7 +310,6 @@ class _EditorScreenState extends State<EditorScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildToolButton(Icons.add_a_photo, 'Photo', colors, onTap: _pickImage),
                     _buildToolButton(Icons.format_size, 'Size', colors, onTap: _showFontSizePicker),
                     Container(width: 1, height: 32, color: colors.outlineVariant.withOpacity(0.2)),
                     IconButton(

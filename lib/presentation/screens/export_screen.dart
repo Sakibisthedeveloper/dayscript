@@ -24,7 +24,6 @@ class ExportScreen extends StatelessWidget {
           content: e.content,
           date: e.date,
           mood: e.mood,
-          photoUrls: e.photoUrls,
           tags: e.tags,
           location: e.location,
         ).toFirestore();
