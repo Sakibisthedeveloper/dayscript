@@ -53,8 +53,10 @@ class _SearchScreenState extends State<SearchScreen> {
           }
 
           final entries = state.entries;
-          final filteredEntries = _query.isEmpty
-              ? <DiaryEntry>[]
+          final isQueryEmpty = _query.isEmpty;
+          
+          final displayEntries = isQueryEmpty
+              ? entries.take(10).toList()
               : entries.where((e) {
                   return e.title.toLowerCase().contains(_query) ||
                          e.content.toLowerCase().contains(_query) ||
@@ -64,6 +66,7 @@ class _SearchScreenState extends State<SearchScreen> {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -84,44 +87,75 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                if (_query.isEmpty)
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.auto_stories, size: 72, color: colors.primary.withOpacity(0.3)),
-                        const SizedBox(height: 16),
-                        Text('Search your memories...', style: textTheme.titleLarge),
-                        Text('Find a moment, feeling, or date.', style: textTheme.bodyLarge?.copyWith(color: colors.onSurfaceVariant)),
-                      ],
+                if (isQueryEmpty) ...[
+                  if (displayEntries.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text('Recent Entries', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                     ),
-                  )
-                else
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: filteredEntries.length,
-                      itemBuilder: (context, index) {
-                        final entry = filteredEntries[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          elevation: 0,
-                          color: colors.surfaceContainerLow,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          child: ListTile(
-                            title: Text(entry.title.isNotEmpty ? entry.title : 'Untitled', style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text(entry.content, maxLines: 2, overflow: TextOverflow.ellipsis),
-                            trailing: Text(DateFormat('MMM d').format(entry.date)),
-                            onTap: () => context.push('/entry', extra: entry),
-                          ),
-                        );
-                      },
+                    Expanded(
+                      child: _buildEntriesList(displayEntries, colors),
                     ),
-                  )
+                  ] else ...[
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.auto_stories, size: 72, color: colors.primary.withOpacity(0.3)),
+                            const SizedBox(height: 16),
+                            Text('Search your memories...', style: textTheme.titleLarge),
+                            Text('Find a moment, feeling, or date.', style: textTheme.bodyLarge?.copyWith(color: colors.onSurfaceVariant)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ]
+                ] else if (displayEntries.isEmpty) ...[
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search_off, size: 72, color: colors.primary.withOpacity(0.3)),
+                          const SizedBox(height: 16),
+                          Text('No results found', style: textTheme.titleLarge),
+                          Text('Try different keywords.', style: textTheme.bodyLarge?.copyWith(color: colors.onSurfaceVariant)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  Expanded(
+                    child: _buildEntriesList(displayEntries, colors),
+                  ),
+                ],
               ],
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildEntriesList(List<DiaryEntry> entries, ColorScheme colors) {
+    return ListView.builder(
+      itemCount: entries.length,
+      itemBuilder: (context, index) {
+        final entry = entries[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          elevation: 0,
+          color: colors.surfaceContainerLow,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: ListTile(
+            title: Text(entry.title.isNotEmpty ? entry.title : 'Untitled', style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(entry.content, maxLines: 2, overflow: TextOverflow.ellipsis),
+            trailing: Text(DateFormat('MMM d').format(entry.date)),
+            onTap: () => context.push('/entry', extra: entry),
+          ),
+        );
+      },
     );
   }
 }
