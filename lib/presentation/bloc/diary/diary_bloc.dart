@@ -103,6 +103,7 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   final SaveEntry _saveEntry;
   final DeleteEntry _deleteEntry;
   final UploadImage _uploadImage;
+  bool _isLoadingMore = false; // Fix 2: guard against concurrent loads
 
   DiaryBloc({
     required GetEntries getEntries,
@@ -134,7 +135,9 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
 
   Future<void> _onLoadMoreEntries(LoadMoreEntries event, Emitter<DiaryState> emit) async {
     if (state is! DiaryLoaded || (state as DiaryLoaded).hasReachedMax) return;
-    
+    if (_isLoadingMore) return; // Fix 2: prevent concurrent loads
+    _isLoadingMore = true;
+
     final currentEntries = (state as DiaryLoaded).entries;
     final lastEntryDate = currentEntries.last.date;
 
@@ -147,6 +150,8 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
       }
     } catch (e) {
       emit(DiaryError(e.toString()));
+    } finally {
+      _isLoadingMore = false;
     }
   }
 

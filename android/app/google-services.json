@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "644913488102",
+    "project_id": "dayscript-5f1c1",
+    "storage_bucket": "dayscript-5f1c1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:644913488102:android:0c6e1147fbc8bb132b1b27",
+        "android_client_info": {
+          "package_name": "com.example.dayscript"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "644913488102-h7rtj04ahqd293amdpj90t73o6d766un.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.dayscript",
+            "certificate_hash": "7044c8b59f3104f882d6a8c13083594e24615f97"
+          }
+        },
+        {
+          "client_id": "644913488102-7p96l3s7e3n25c8g4f09s2m4olumo5lk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAMnXGuo2O6VMd21Y-Xs3Oa8li7FnPrPBY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "644913488102-7p96l3s7e3n25c8g4f09s2m4olumo5lk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

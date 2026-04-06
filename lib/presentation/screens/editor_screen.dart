@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../domain/entities/diary_entry.dart';
@@ -26,6 +27,14 @@ class _EditorScreenState extends State<EditorScreen> {
   final ImagePicker _picker = ImagePicker();
   Timer? _autoSaveTimer;
   bool _isUploading = false;
+  double _fontSize = 16.0; // Fix 3: font size state
+
+  static const List<_FontSizeOption> _fontSizeOptions = [
+    _FontSizeOption(label: 'Small', size: 13.0),
+    _FontSizeOption(label: 'Normal', size: 16.0),
+    _FontSizeOption(label: 'Large', size: 20.0),
+    _FontSizeOption(label: 'X-Large', size: 24.0),
+  ];
 
   @override
   void initState() {
@@ -36,11 +45,9 @@ class _EditorScreenState extends State<EditorScreen> {
       _currentMood = widget.entry!.mood;
       _photoUrls = List.from(widget.entry!.photoUrls);
     }
-    
+
     _autoSaveTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (_hasChanges()) {
-        _autoSaveEntry();
-      }
+      if (_hasChanges()) _autoSaveEntry();
     });
   }
 
@@ -55,7 +62,7 @@ class _EditorScreenState extends State<EditorScreen> {
   void _saveEntry() {
     final authState = context.read<AuthBloc>().state;
     if (authState is! Authenticated) return;
-    
+
     final entry = DiaryEntry(
       id: widget.entry?.id ?? const Uuid().v4(),
       title: _titleController.text,
@@ -73,7 +80,7 @@ class _EditorScreenState extends State<EditorScreen> {
   void _autoSaveEntry() {
     final authState = context.read<AuthBloc>().state;
     if (authState is! Authenticated) return;
-    
+
     final entry = DiaryEntry(
       id: widget.entry?.id ?? const Uuid().v4(),
       title: _titleController.text,
@@ -92,7 +99,7 @@ class _EditorScreenState extends State<EditorScreen> {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 50, // Added compression
+        imageQuality: 60,
       );
       if (image != null && mounted) {
         final authState = context.read<AuthBloc>().state;
@@ -101,8 +108,59 @@ class _EditorScreenState extends State<EditorScreen> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not pick image: $e')),
+        );
+      }
     }
+  }
+
+  // Fix 3: Show font size picker bottom sheet
+  void _showFontSizePicker() {
+    final colors = Theme.of(context).colorScheme;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: colors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                  child: Text(
+                    'Text Size',
+                    style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                ..._fontSizeOptions.map((opt) {
+                  final isSelected = _fontSize == opt.size;
+                  return ListTile(
+                    leading: Icon(
+                      isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                      color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                    ),
+                    title: Text(opt.label, style: TextStyle(fontSize: opt.size)),
+                    trailing: isSelected ? Icon(Icons.check, color: colors.primary) : null,
+                    onTap: () {
+                      setState(() => _fontSize = opt.size);
+                      Navigator.of(ctx).pop();
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   bool _hasChanges() {
@@ -112,9 +170,9 @@ class _EditorScreenState extends State<EditorScreen> {
     final originalPhotos = widget.entry?.photoUrls ?? [];
 
     return _titleController.text != originalTitle ||
-           _contentController.text != originalContent ||
-           _currentMood != originalMood ||
-           _photoUrls.length != originalPhotos.length;
+        _contentController.text != originalContent ||
+        _currentMood != originalMood ||
+        _photoUrls.length != originalPhotos.length;
   }
 
   @override
@@ -124,6 +182,12 @@ class _EditorScreenState extends State<EditorScreen> {
     final isNew = widget.entry == null;
 
     return BlocListener<DiaryBloc, DiaryState>(
+      // Fix 2: Only listen to upload/save states, not every diary state
+      listenWhen: (previous, current) =>
+          current is DiaryEntryOperationSuccess ||
+          current is DiaryImageUploaded ||
+          current is DiaryImageUploading ||
+          current is DiaryError,
       listener: (context, state) {
         if (state is DiaryEntryOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -137,12 +201,16 @@ class _EditorScreenState extends State<EditorScreen> {
             _photoUrls.add(state.imageUrl);
             _isUploading = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image uploaded!')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Image uploaded!')),
+          );
         } else if (state is DiaryImageUploading) {
           setState(() => _isUploading = true);
         } else if (state is DiaryError) {
           setState(() => _isUploading = false);
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: colors.error));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: colors.error),
+          );
         }
       },
       child: PopScope(
@@ -159,7 +227,10 @@ class _EditorScreenState extends State<EditorScreen> {
               title: const Text('Discard changes?'),
               content: const Text('You have unsaved changes. Are you sure you want to leave?'),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
                 TextButton(
                   onPressed: () => Navigator.pop(context, true),
                   child: Text('Discard', style: TextStyle(color: colors.error)),
@@ -172,7 +243,7 @@ class _EditorScreenState extends State<EditorScreen> {
           }
         },
         child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(), // Keyboard dismiss
+          onTap: () => FocusScope.of(context).unfocus(),
           child: Scaffold(
             extendBody: true,
             appBar: AppBar(
@@ -184,11 +255,14 @@ class _EditorScreenState extends State<EditorScreen> {
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(isNew ? 'New Entry' : 'Edit Entry', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  Text(
+                    isNew ? 'New Entry' : 'Edit Entry',
+                    style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                   Text(
                     DateFormat('MMMM d, yyyy').format(widget.entry?.date ?? DateTime.now()),
                     style: textTheme.labelSmall,
-                  )
+                  ),
                 ],
               ),
               actions: [
@@ -203,29 +277,34 @@ class _EditorScreenState extends State<EditorScreen> {
                     ),
                     child: const Text('Save', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                )
-              ],
-              bottom: _isUploading ? PreferredSize(
-                preferredSize: const Size.fromHeight(4.0),
-                child: LinearProgressIndicator(
-                  backgroundColor: colors.surfaceContainerHighest,
-                  color: colors.primary,
                 ),
-              ) : null,
+              ],
+              bottom: _isUploading
+                  ? PreferredSize(
+                      preferredSize: const Size.fromHeight(4.0),
+                      child: LinearProgressIndicator(
+                        backgroundColor: colors.surfaceContainerHighest,
+                        color: colors.primary,
+                      ),
+                    )
+                  : null,
             ),
             body: SingleChildScrollView(
               padding: EdgeInsets.only(
-                left: 24.0, 
-                right: 24.0, 
-                top: 24.0, 
-                bottom: MediaQuery.of(context).viewInsets.bottom + 120.0
+                left: 24.0,
+                right: 24.0,
+                top: 24.0,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 120.0,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextField(
                     controller: _titleController,
-                    style: textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w800, color: colors.onSurface),
+                    style: textTheme.displayMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: colors.onSurface,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Title your day...',
                       hintStyle: textTheme.displayMedium?.copyWith(color: colors.outlineVariant),
@@ -237,10 +316,14 @@ class _EditorScreenState extends State<EditorScreen> {
                     children: [
                       Icon(Icons.mood, color: colors.primary, size: 24),
                       const SizedBox(width: 8),
-                      Text('How does this moment feel?', style: textTheme.labelMedium?.copyWith(fontStyle: FontStyle.italic)),
+                      Text(
+                        'How does this moment feel?',
+                        style: textTheme.labelMedium?.copyWith(fontStyle: FontStyle.italic),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
+                  // Fix 2: Use CachedNetworkImage for lazy loading
                   if (_photoUrls.isNotEmpty)
                     SizedBox(
                       height: 120,
@@ -254,7 +337,24 @@ class _EditorScreenState extends State<EditorScreen> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(_photoUrls[index], height: 120, width: 120, fit: BoxFit.cover),
+                                  child: CachedNetworkImage(
+                                    imageUrl: _photoUrls[index],
+                                    height: 120,
+                                    width: 120,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(
+                                      height: 120,
+                                      width: 120,
+                                      color: colors.surfaceContainerHighest,
+                                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                                    ),
+                                    errorWidget: (context, url, error) => Container(
+                                      height: 120,
+                                      width: 120,
+                                      color: colors.errorContainer,
+                                      child: Icon(Icons.broken_image, color: colors.error),
+                                    ),
+                                  ),
                                 ),
                                 Positioned(
                                   top: 4,
@@ -263,7 +363,10 @@ class _EditorScreenState extends State<EditorScreen> {
                                     onTap: () => setState(() => _photoUrls.removeAt(index)),
                                     child: Container(
                                       padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.black54,
+                                        shape: BoxShape.circle,
+                                      ),
                                       child: const Icon(Icons.close, size: 16, color: Colors.white),
                                     ),
                                   ),
@@ -275,55 +378,58 @@ class _EditorScreenState extends State<EditorScreen> {
                       ),
                     ),
                   if (_photoUrls.isNotEmpty) const SizedBox(height: 24),
+                  // Fix 3: Apply _fontSize to text field
                   TextField(
                     controller: _contentController,
                     maxLines: null,
                     minLines: 15,
-                    autofocus: isNew, // Auto focus for new entry
-                    style: textTheme.bodyLarge?.copyWith(fontSize: 20, height: 1.6),
+                    autofocus: isNew,
+                    style: textTheme.bodyLarge?.copyWith(fontSize: _fontSize, height: 1.6),
                     decoration: InputDecoration(
                       hintText: "What's on your mind today?",
-                      hintStyle: textTheme.bodyLarge?.copyWith(fontSize: 20, color: colors.outlineVariant.withOpacity(0.6)),
+                      hintStyle: textTheme.bodyLarge?.copyWith(
+                        fontSize: _fontSize,
+                        color: colors.outlineVariant.withOpacity(0.6),
+                      ),
                       border: InputBorder.none,
                     ),
                   ),
                 ],
               ),
             ),
+            // Fix 4 & 5: Removed Voice and Place buttons
             bottomNavigationBar: SafeArea(
-          child: Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: colors.surface.withOpacity(0.85),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withOpacity(0.12),
-                  blurRadius: 32,
-                  offset: const Offset(0, 8),
-                )
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildToolButton(Icons.add_a_photo, 'Photo', colors, onTap: _pickImage),
-                _buildToolButton(Icons.format_size, 'Size', colors),
-                _buildToolButton(Icons.mic, 'Voice', colors),
-                _buildToolButton(Icons.location_on, 'Place', colors),
-                Container(width: 1, height: 32, color: colors.outlineVariant.withOpacity(0.2)),
-                IconButton(
-                  style: IconButton.styleFrom(
-                    backgroundColor: colors.primaryContainer.withOpacity(0.2),
-                    foregroundColor: colors.primary,
-                  ),
-                  icon: const Icon(Icons.done_all),
-                  onPressed: _saveEntry,
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: colors.surface.withOpacity(0.85),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colors.primary.withOpacity(0.12),
+                      blurRadius: 32,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildToolButton(Icons.add_a_photo, 'Photo', colors, onTap: _pickImage),
+                    _buildToolButton(Icons.format_size, 'Size', colors, onTap: _showFontSizePicker),
+                    Container(width: 1, height: 32, color: colors.outlineVariant.withOpacity(0.2)),
+                    IconButton(
+                      style: IconButton.styleFrom(
+                        backgroundColor: colors.primaryContainer.withOpacity(0.2),
+                        foregroundColor: colors.primary,
+                      ),
+                      icon: const Icon(Icons.done_all),
+                      onPressed: _saveEntry,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -343,10 +449,24 @@ class _EditorScreenState extends State<EditorScreen> {
           children: [
             Icon(icon, color: colors.onSurfaceVariant),
             const SizedBox(height: 4),
-            Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: colors.onSurfaceVariant.withOpacity(0.6))),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: colors.onSurfaceVariant.withOpacity(0.6),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+/// Simple data class for font size options.
+class _FontSizeOption {
+  final String label;
+  final double size;
+  const _FontSizeOption({required this.label, required this.size});
 }

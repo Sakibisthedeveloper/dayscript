@@ -66,6 +66,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final textTheme = Theme.of(context).textTheme;
 
     return BlocBuilder<AuthBloc, AuthState>(
+      // Fix 2: Only rebuild when auth status actually changes
+      buildWhen: (previous, current) =>
+          (previous is Authenticated) != (current is Authenticated),
       builder: (context, authState) {
         if (authState is! Authenticated) return const Scaffold(body: Center(child: CircularProgressIndicator()));
         final user = authState.user;
@@ -127,6 +130,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   ),
                   BlocBuilder<DiaryBloc, DiaryState>(
+                    // Fix 2: Skip upload-related states — only rebuild on load/error/entry ops
+                    buildWhen: (previous, current) =>
+                        current is DiaryInitial ||
+                        current is DiaryLoading ||
+                        current is DiaryLoaded ||
+                        current is DiaryError ||
+                        current is DiaryEntryOperationSuccess,
                     builder: (context, state) {
                       if (state is DiaryInitial || (state is DiaryLoading && state is! DiaryLoaded)) {
                         if (state is DiaryInitial) {

@@ -27,31 +27,72 @@ class ViewEntryScreen extends StatelessWidget {
             onPressed: () => context.push('/editor', extra: entry),
           ),
           IconButton(
-            icon: const Icon(Icons.delete),
+            icon: Icon(Icons.delete_outline, color: colors.error),
+            tooltip: 'Delete entry',
             onPressed: () async {
               final authState = context.read<AuthBloc>().state;
               if (authState is! Authenticated) return;
 
               final bool? confirm = await showDialog<bool>(
                 context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Delete Entry?'),
-                  content: const Text('This action cannot be undone and will also delete associated photos.'),
+                barrierDismissible: false,
+                builder: (dialogContext) => AlertDialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  title: Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: colors.error, size: 28),
+                      const SizedBox(width: 12),
+                      const Text('Delete Entry?'),
+                    ],
+                  ),
+                  content: const Text(
+                    'Are you sure you want to delete this entry? This action cannot be undone and will also delete associated photos.',
+                  ),
                   actions: [
-                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: Text('Delete', style: TextStyle(color: colors.error)),
+                    OutlinedButton(
+                      onPressed: () => Navigator.pop(dialogContext, false),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(dialogContext, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colors.error,
+                        foregroundColor: colors.onError,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                      child: const Text('Delete'),
                     ),
                   ],
+                  actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 ),
               );
 
-              if (confirm ?? false) {
-                if (context.mounted) {
-                  context.read<DiaryBloc>().add(RemoveEntry(authState.user.uid, entry));
-                  context.pop();
-                }
+              if ((confirm ?? false) && context.mounted) {
+                context.read<DiaryBloc>().add(RemoveEntry(authState.user.uid, entry));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.white, size: 20),
+                        SizedBox(width: 12),
+                        Text('Entry deleted successfully'),
+                      ],
+                    ),
+                    backgroundColor: Colors.green.shade700,
+                    behavior: SnackBarBehavior.floating,
+                    margin: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+                // Small delay so the snackbar starts animating before the screen pops
+                await Future.delayed(const Duration(milliseconds: 300));
+                if (context.mounted) context.pop();
               }
             },
           ),
