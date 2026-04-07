@@ -150,9 +150,9 @@ class ExportScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.surfaceContainerLowest,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colors.outlineVariant.withOpacity(0.2)),
+          border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.2)),
           boxShadow: [
-            BoxShadow(color: colors.primary.withOpacity(0.04), blurRadius: 24, offset: const Offset(0, 8))
+            BoxShadow(color: colors.primary.withValues(alpha: 0.04), blurRadius: 24, offset: const Offset(0, 8))
           ]
         ),
         child: Column(
@@ -160,7 +160,7 @@ class ExportScreen extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: colors.primaryContainer.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: colors.primaryContainer.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, size: 32, color: colors.primary),
             ),
             const SizedBox(height: 16),

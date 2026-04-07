@@ -74,7 +74,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     color: colors.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
-                      BoxShadow(color: colors.primary.withOpacity(0.04), blurRadius: 24, offset: const Offset(0, 8))
+                      BoxShadow(color: colors.primary.withValues(alpha: 0.04), blurRadius: 24, offset: const Offset(0, 8))
                     ]
                   ),
                   child: TextField(
@@ -102,7 +102,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.auto_stories, size: 72, color: colors.primary.withOpacity(0.3)),
+                            Icon(Icons.auto_stories, size: 72, color: colors.primary.withValues(alpha: 0.3)),
                             const SizedBox(height: 16),
                             Text('Search your memories...', style: textTheme.titleLarge),
                             Text('Find a moment, feeling, or date.', style: textTheme.bodyLarge?.copyWith(color: colors.onSurfaceVariant)),
@@ -117,7 +117,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.search_off, size: 72, color: colors.primary.withOpacity(0.3)),
+                          Icon(Icons.search_off, size: 72, color: colors.primary.withValues(alpha: 0.3)),
                           const SizedBox(height: 16),
                           Text('No results found', style: textTheme.titleLarge),
                           Text('Try different keywords.', style: textTheme.bodyLarge?.copyWith(color: colors.onSurfaceVariant)),

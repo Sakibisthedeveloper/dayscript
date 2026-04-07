@@ -52,8 +52,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
             entries = state.entries;
           }
 
-          final eventsToday = _getEventsForDay(_selectedDay!, entries);
-
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -64,7 +62,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     color: colors.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(32),
                     boxShadow: [
-                      BoxShadow(color: colors.primary.withOpacity(0.04), blurRadius: 24, offset: const Offset(0, 8))
+                      BoxShadow(color: colors.primary.withValues(alpha: 0.04), blurRadius: 24, offset: const Offset(0, 8))
                     ],
                   ),
                   child: TableCalendar<DiaryEntry>(
@@ -133,7 +131,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       markersMaxCount: 1,
                       markerSize: 8.0,
                       selectedDecoration: BoxDecoration(color: colors.primary, shape: BoxShape.circle),
-                      todayDecoration: BoxDecoration(color: colors.primaryContainer.withOpacity(0.5), shape: BoxShape.circle),
+                      todayDecoration: BoxDecoration(color: colors.primaryContainer.withValues(alpha: 0.5), shape: BoxShape.circle),
                     ),
                     headerStyle: HeaderStyle(
                       formatButtonVisible: false,

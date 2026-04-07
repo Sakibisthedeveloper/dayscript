@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../domain/entities/diary_entry.dart';
 import '../bloc/diary/diary_bloc.dart';
 import '../bloc/auth/auth_bloc.dart';
@@ -211,7 +212,7 @@ class _EditorScreenState extends State<EditorScreen> {
           child: Scaffold(
             extendBody: true,
             appBar: AppBar(
-              backgroundColor: colors.surface.withOpacity(0.9),
+              backgroundColor: colors.surface.withValues(alpha: 0.9),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.maybePop(context),
@@ -289,7 +290,7 @@ class _EditorScreenState extends State<EditorScreen> {
                       hintText: "What's on your mind today?",
                       hintStyle: textTheme.bodyLarge?.copyWith(
                         fontSize: _fontSize,
-                        color: colors.outlineVariant.withOpacity(0.6),
+                        color: colors.outlineVariant.withValues(alpha: 0.6),
                       ),
                       border: InputBorder.none,
                     ),
@@ -303,12 +304,12 @@ class _EditorScreenState extends State<EditorScreen> {
                 margin: const EdgeInsets.all(16),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: colors.surface.withOpacity(0.85),
+                  color: colors.surface.withValues(alpha: 0.85),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                   boxShadow: [
                     BoxShadow(
-                      color: colors.primary.withOpacity(0.12),
+                      color: colors.primary.withValues(alpha: 0.12),
                       blurRadius: 32,
                       offset: const Offset(0, 8),
                     ),
@@ -318,10 +319,10 @@ class _EditorScreenState extends State<EditorScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildToolButton(Icons.format_size, 'Size', colors, onTap: _showFontSizePicker),
-                    Container(width: 1, height: 32, color: colors.outlineVariant.withOpacity(0.2)),
+                    Container(width: 1, height: 32, color: colors.outlineVariant.withValues(alpha: 0.2)),
                     IconButton(
                       style: IconButton.styleFrom(
-                        backgroundColor: colors.primaryContainer.withOpacity(0.2),
+                        backgroundColor: colors.primaryContainer.withValues(alpha: 0.2),
                         foregroundColor: colors.primary,
                       ),
                       icon: const Icon(Icons.done_all),
@@ -353,7 +354,7 @@ class _EditorScreenState extends State<EditorScreen> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: colors.onSurfaceVariant.withOpacity(0.6),
+                color: colors.onSurfaceVariant.withValues(alpha: 0.6),
               ),
             ),
           ],
