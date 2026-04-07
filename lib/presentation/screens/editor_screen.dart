@@ -159,7 +159,7 @@ class _EditorScreenState extends State<EditorScreen> {
           current is DiaryError,
       listener: (context, state) {
         if (state is DiaryEntryOperationSuccess) {
-          context.go('/home');
+          context.pop();
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Row(
               children: [

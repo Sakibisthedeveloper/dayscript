@@ -1,3 +1,4 @@
+import 'firebase_options.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -22,7 +23,6 @@ import 'presentation/screens/view_entry_screen.dart';
 import 'presentation/screens/calendar_screen.dart';
 import 'presentation/screens/search_screen.dart';
 import 'presentation/screens/export_screen.dart';
-import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -99,7 +99,7 @@ class _DayScriptAppState extends State<DayScriptApp> {
       routes: [
         GoRoute(
           path: '/splash',
-          pageBuilder: (context, state) => const CustomTransitionPage(
+          pageBuilder: (context, state) => CustomTransitionPage(
             child: SplashScreen(),
             transitionsBuilder: _fadeTransition,
           ),
@@ -110,14 +110,14 @@ class _DayScriptAppState extends State<DayScriptApp> {
         ),
         GoRoute(
           path: '/home',
-          pageBuilder: (context, state) => const CustomTransitionPage(
+          pageBuilder: (context, state) => CustomTransitionPage(
             child: HomeScreen(),
             transitionsBuilder: _fadeTransition,
           ),
         ),
         GoRoute(
           path: '/login',
-          pageBuilder: (context, state) => const CustomTransitionPage(
+          pageBuilder: (context, state) => CustomTransitionPage(
             child: SignInScreen(),
             transitionsBuilder: _fadeTransition,
           ),
@@ -151,21 +151,21 @@ class _DayScriptAppState extends State<DayScriptApp> {
         ),
         GoRoute(
           path: '/calendar',
-          pageBuilder: (context, state) => const CustomTransitionPage(
+          pageBuilder: (context, state) => CustomTransitionPage(
             child: CalendarScreen(),
             transitionsBuilder: _fadeTransition,
           ),
         ),
         GoRoute(
           path: '/search',
-          pageBuilder: (context, state) => const CustomTransitionPage(
+          pageBuilder: (context, state) => CustomTransitionPage(
             child: SearchScreen(),
             transitionsBuilder: _fadeTransition,
           ),
         ),
         GoRoute(
           path: '/export',
-          pageBuilder: (context, state) => const CustomTransitionPage(
+          pageBuilder: (context, state) => CustomTransitionPage(
             child: ExportScreen(),
             transitionsBuilder: _fadeTransition,
           ),
