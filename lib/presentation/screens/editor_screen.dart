@@ -159,7 +159,6 @@ class _EditorScreenState extends State<EditorScreen> {
           current is DiaryError,
       listener: (context, state) {
         if (state is DiaryEntryOperationSuccess) {
-          context.pop();
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Row(
               children: [
@@ -172,6 +171,7 @@ class _EditorScreenState extends State<EditorScreen> {
             backgroundColor: colors.primary,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ));
+          context.pop();
         } else if (state is DiaryError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: colors.error),
