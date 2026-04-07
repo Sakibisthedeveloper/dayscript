@@ -34,11 +34,19 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.1
   flutter_native_splash: ^2.4.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter_native_splash:
   color: "#3a38f1" # Deep Indigo from app_theme
   android_12:
     color: "#3a38f1"
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#3D3BF3"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
 
 flutter:
   uses-material-design: true
