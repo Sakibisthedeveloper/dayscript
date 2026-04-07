@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_quill/flutter_quill.dart' as quill;
 import '../../domain/entities/diary_entry.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/diary/diary_bloc.dart';
 import '../bloc/auth/auth_bloc.dart';
+import '../../core/utils/editor_utils.dart';
 
 class ViewEntryScreen extends StatelessWidget {
   final DiaryEntry entry;
@@ -141,9 +143,16 @@ class ViewEntryScreen extends StatelessWidget {
                   BoxShadow(color: colors.primary.withValues(alpha: 0.04), blurRadius: 24, offset: const Offset(0, 4))
                 ],
               ),
-              child: Text(
-                entry.content,
-                style: textTheme.titleMedium?.copyWith(height: 1.7, fontWeight: FontWeight.normal),
+              child: quill.QuillEditor.basic(
+                configurations: quill.QuillEditorConfigurations(
+                  controller: quill.QuillController(
+                    document: EditorUtils.getDocument(entry.content),
+                    selection: const TextSelection.collapsed(offset: 0),
+                  ),
+                  showCursor: false,
+                  padding: EdgeInsets.zero,
+                ),
+                focusNode: FocusNode()..canRequestFocus = false,
               ),
             ),
             // Tags
