@@ -124,7 +124,7 @@ class _DayScriptAppState extends State<DayScriptApp> {
         ),
         GoRoute(
           path: '/profile',
-          pageBuilder: (context, state) => const CustomTransitionPage(
+          pageBuilder: (context, state) => CustomTransitionPage(
             child: ProfileScreen(),
             transitionsBuilder: _fadeTransition,
           ),
