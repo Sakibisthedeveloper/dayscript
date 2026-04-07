@@ -5,4 +5,5 @@ abstract class DiaryRepository {
   Future<DiaryEntry> getEntryById(String userId, String entryId);
   Future<void> saveEntry(String userId, DiaryEntry entry);
   Future<void> deleteEntry(String userId, DiaryEntry entry); // Changed to take full entry to get photoUrls
+  Future<Map<DateTime, String?>> getWeeklyPulse(String userId);
 }

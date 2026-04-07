@@ -75,4 +75,45 @@ class FirebaseDiaryRepository implements DiaryRepository {
     }
   }
 
+  @override
+  Future<Map<DateTime, String?>> getWeeklyPulse(String userId) async {
+    try {
+      final now = DateTime.now();
+      // Normalize to start of today
+      final today = DateTime(now.year, now.month, now.day);
+      final sevenDaysAgo = today.subtract(const Duration(days: 6)); // Today + 6 previous days = 7 days
+
+      final snapshot = await _getCollection(userId)
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(sevenDaysAgo))
+          .orderBy('date', descending: true)
+          .get();
+
+      final entries = snapshot.docs.map((doc) => DiaryEntryModel.fromFirestore(doc)).toList();
+
+      final validMoods = {'productive', 'happy', 'calm', 'neutral', 'sad'};
+
+      final pulse = <DateTime, String?>{};
+      for (int i = 0; i < 7; i++) {
+        final currentDay = today.subtract(Duration(days: i));
+
+        // Find an entry for this specific day
+        final entryForDay = entries.where((e) =>
+            e.date.year == currentDay.year &&
+            e.date.month == currentDay.month &&
+            e.date.day == currentDay.day).firstOrNull;
+
+        if (entryForDay != null) {
+          final mood = entryForDay.mood.toLowerCase();
+          pulse[currentDay] = validMoods.contains(mood) ? mood : 'neutral';
+        } else {
+          pulse[currentDay] = null;
+        }
+      }
+
+      return pulse;
+    } catch (e) {
+      throw Exception('Failed to get weekly pulse: $e');
+    }
+  }
+
 }

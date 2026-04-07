@@ -61,9 +61,16 @@ class DiaryLoading extends DiaryState {}
 class DiaryLoaded extends DiaryState {
   final List<DiaryEntry> entries;
   final bool hasReachedMax;
-  const DiaryLoaded(this.entries, {this.hasReachedMax = false});
+  final Map<DateTime, String?> weeklyMoods;
+
+  const DiaryLoaded(
+    this.entries, {
+    this.hasReachedMax = false,
+    this.weeklyMoods = const {},
+  });
+
   @override
-  List<Object?> get props => [entries, hasReachedMax];
+  List<Object?> get props => [entries, hasReachedMax, weeklyMoods];
 }
 
 class DiaryEntryOperationSuccess extends DiaryState {
@@ -85,15 +92,18 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   final GetEntries _getEntries;
   final SaveEntry _saveEntry;
   final DeleteEntry _deleteEntry;
+  final GetWeeklyPulse _getWeeklyPulse;
   bool _isLoadingMore = false; // Fix 2: guard against concurrent loads
 
   DiaryBloc({
     required GetEntries getEntries,
     required SaveEntry saveEntry,
     required DeleteEntry deleteEntry,
+    required GetWeeklyPulse getWeeklyPulse,
   })  : _getEntries = getEntries,
         _saveEntry = saveEntry,
         _deleteEntry = deleteEntry,
+        _getWeeklyPulse = getWeeklyPulse,
         super(DiaryInitial()) {
     on<LoadEntries>(_onLoadEntries);
     on<LoadMoreEntries>(_onLoadMoreEntries);
@@ -106,7 +116,8 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
     emit(DiaryLoading());
     try {
       final entries = await _getEntries(event.userId, limit: event.limit);
-      emit(DiaryLoaded(entries, hasReachedMax: entries.length < event.limit));
+      final weeklyMoods = await _getWeeklyPulse(event.userId);
+      emit(DiaryLoaded(entries, hasReachedMax: entries.length < event.limit, weeklyMoods: weeklyMoods));
     } catch (e) {
       emit(DiaryError(e.toString()));
     }
@@ -117,15 +128,17 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
     if (_isLoadingMore) return; // Fix 2: prevent concurrent loads
     _isLoadingMore = true;
 
-    final currentEntries = (state as DiaryLoaded).entries;
+    final currentState = state as DiaryLoaded;
+    final currentEntries = currentState.entries;
     final lastEntryDate = currentEntries.last.date;
+    final weeklyMoods = currentState.weeklyMoods;
 
     try {
       final moreEntries = await _getEntries(event.userId, startAfter: lastEntryDate);
       if (moreEntries.isEmpty) {
-        emit(DiaryLoaded(currentEntries, hasReachedMax: true));
+        emit(DiaryLoaded(currentEntries, hasReachedMax: true, weeklyMoods: weeklyMoods));
       } else {
-        emit(DiaryLoaded(currentEntries + moreEntries, hasReachedMax: moreEntries.length < 20));
+        emit(DiaryLoaded(currentEntries + moreEntries, hasReachedMax: moreEntries.length < 20, weeklyMoods: weeklyMoods));
       }
     } catch (e) {
       emit(DiaryError(e.toString()));
@@ -137,12 +150,14 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   Future<void> _onAddOrUpdateEntry(AddOrUpdateEntry event, Emitter<DiaryState> emit) async {
     List<DiaryEntry> oldEntries = [];
     bool reachedMax = false;
+    Map<DateTime, String?> weeklyMoods = {};
     List<DiaryEntry>? optimEntries;
     
     if (state is DiaryLoaded) {
       final currentState = state as DiaryLoaded;
       oldEntries = currentState.entries;
       reachedMax = currentState.hasReachedMax;
+      weeklyMoods = currentState.weeklyMoods;
       
       optimEntries = List.from(oldEntries);
       final index = optimEntries.indexWhere((e) => e.id == event.entry.id);
@@ -152,15 +167,18 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
         optimEntries.insert(0, event.entry);
         optimEntries.sort((a,b) => b.date.compareTo(a.date));
       }
-      emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax));
+      emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax, weeklyMoods: weeklyMoods));
     }
 
     try {
       await _saveEntry(event.userId, event.entry);
+      // Re-fetch weekly pulse after save to ensure it's up to date
+      final updatedWeeklyMoods = await _getWeeklyPulse(event.userId);
+
       emit(const DiaryEntryOperationSuccess('Entry saved successfully!'));
-      if (optimEntries != null) emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax));
+      if (optimEntries != null) emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax, weeklyMoods: updatedWeeklyMoods));
     } catch (e) {
-      if (oldEntries.isNotEmpty) emit(DiaryLoaded(oldEntries, hasReachedMax: reachedMax));
+      if (oldEntries.isNotEmpty) emit(DiaryLoaded(oldEntries, hasReachedMax: reachedMax, weeklyMoods: weeklyMoods));
       emit(DiaryError(e.toString()));
     }
   }
@@ -175,23 +193,28 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
   Future<void> _onRemoveEntry(RemoveEntry event, Emitter<DiaryState> emit) async {
     List<DiaryEntry> oldEntries = [];
     bool reachedMax = false;
+    Map<DateTime, String?> weeklyMoods = {};
     List<DiaryEntry>? optimEntries;
     
     if (state is DiaryLoaded) {
       final currentState = state as DiaryLoaded;
       oldEntries = currentState.entries;
       reachedMax = currentState.hasReachedMax;
+      weeklyMoods = currentState.weeklyMoods;
       
       optimEntries = List.from(oldEntries)..removeWhere((e) => e.id == event.entry.id);
-      emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax));
+      emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax, weeklyMoods: weeklyMoods));
     }
 
     try {
       await _deleteEntry(event.userId, event.entry);
+      // Re-fetch weekly pulse after delete to ensure it's up to date
+      final updatedWeeklyMoods = await _getWeeklyPulse(event.userId);
+
       emit(const DiaryEntryOperationSuccess('Entry deleted successfully!'));
-      if (optimEntries != null) emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax));
+      if (optimEntries != null) emit(DiaryLoaded(optimEntries, hasReachedMax: reachedMax, weeklyMoods: updatedWeeklyMoods));
     } catch (e) {
-      if (oldEntries.isNotEmpty) emit(DiaryLoaded(oldEntries, hasReachedMax: reachedMax));
+      if (oldEntries.isNotEmpty) emit(DiaryLoaded(oldEntries, hasReachedMax: reachedMax, weeklyMoods: weeklyMoods));
       emit(DiaryError(e.toString()));
     }
   }
