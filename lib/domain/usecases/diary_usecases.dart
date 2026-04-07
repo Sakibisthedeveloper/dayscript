@@ -27,3 +27,12 @@ class DeleteEntry {
     await repository.deleteEntry(userId, entry);
   }
 }
+
+class GetWeeklyPulse {
+  final DiaryRepository repository;
+  GetWeeklyPulse(this.repository);
+
+  Future<Map<DateTime, String?>> call(String userId) async {
+    return await repository.getWeeklyPulse(userId);
+  }
+}

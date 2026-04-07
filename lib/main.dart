@@ -52,6 +52,7 @@ void main() async {
             getEntries: GetEntries(diaryRepository),
             saveEntry: SaveEntry(diaryRepository),
             deleteEntry: DeleteEntry(diaryRepository),
+            getWeeklyPulse: GetWeeklyPulse(diaryRepository),
           ),
         ),
         BlocProvider(
