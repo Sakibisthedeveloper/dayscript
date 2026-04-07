@@ -3,22 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DiaryEntryModel extends DiaryEntry {
   const DiaryEntryModel({
-    required String id,
-    required String title,
-    required String content,
-    required DateTime date,
-    required String mood,
-    required List<String> tags,
-    String? location,
-  }) : super(
-          id: id,
-          title: title,
-          content: content,
-          date: date,
-          mood: mood,
-          tags: tags,
-          location: location,
-        );
+    required super.id,
+    required super.title,
+    required super.content,
+    required super.date,
+    required super.mood,
+    required super.tags,
+    super.location,
+  });
 
   factory DiaryEntryModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;

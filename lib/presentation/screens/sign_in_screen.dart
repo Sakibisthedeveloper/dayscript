@@ -32,7 +32,7 @@ class SignInScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
                     colors: [
-                      colors.primary.withOpacity(0.08),
+                      colors.primary.withValues(alpha: 0.08),
                       Colors.transparent,
                     ],
                     radius: 1.5,
@@ -59,7 +59,7 @@ class SignInScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(32),
                           boxShadow: [
                             BoxShadow(
-                              color: colors.primary.withOpacity(0.2),
+                              color: colors.primary.withValues(alpha: 0.2),
                               blurRadius: 32,
                               offset: const Offset(0, 12),
                             ),
@@ -91,12 +91,12 @@ class SignInScreen extends StatelessWidget {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: colors.surface,
-                          foregroundColor: colors.onBackground,
+                          foregroundColor: colors.onSurface,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(32),
-                            side: BorderSide(color: colors.outlineVariant.withOpacity(0.2)),
+                            side: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.2)),
                           ),
                           minimumSize: const Size(double.infinity, 56),
                         ),

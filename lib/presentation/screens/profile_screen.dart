@@ -81,7 +81,7 @@ class ProfileScreen extends StatelessWidget {
                       return Switch(
                         value: mode == ThemeMode.dark,
                         onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
-                        activeColor: colors.primary,
+                        activeThumbColor: colors.primary,
                       );
                     },
                   ),
@@ -104,17 +104,17 @@ class ProfileScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   height: 56,
-                  child: ElevatedButton.styleFrom(
-                    backgroundColor: colors.errorContainer.withOpacity(0.1),
-                    foregroundColor: colors.error,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(color: colors.error.withOpacity(0.2)),
-                    ),
-                  ).applyFactory((style) => ElevatedButton(
+                  child: ElevatedButton(
                     onPressed: () => _showSignOutDialog(context),
-                    style: style,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colors.errorContainer.withValues(alpha: 0.1),
+                      foregroundColor: colors.error,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: colors.error.withValues(alpha: 0.2)),
+                      ),
+                    ),
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -123,7 +123,7 @@ class ProfileScreen extends StatelessWidget {
                         Text('Sign Out', style: TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
-                  )),
+                  ),
                 ),
               ],
             ),

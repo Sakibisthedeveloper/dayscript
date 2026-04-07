@@ -90,8 +90,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            colors.surface.withOpacity(0.9),
-                            colors.surface.withOpacity(0.4),
+                            colors.surface.withValues(alpha: 0.9),
+                            colors.surface.withValues(alpha: 0.4),
                           ],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
@@ -182,10 +182,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                     width: 120,
                                     height: 120,
                                     decoration: BoxDecoration(
-                                      color: colors.primary.withOpacity(0.05),
+                                      color: colors.primary.withValues(alpha: 0.05),
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Icon(Icons.history_edu, size: 60, color: colors.primary.withOpacity(0.4)),
+                                    child: Icon(Icons.history_edu, size: 60, color: colors.primary.withValues(alpha: 0.4)),
                                   ),
                                   const SizedBox(height: 24),
                                   Text(
@@ -258,10 +258,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         decoration: BoxDecoration(
           color: colors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: colors.outline.withOpacity(0.08)),
+          border: Border.all(color: colors.outline.withValues(alpha: 0.08)),
           boxShadow: [
             BoxShadow(
-              color: colors.primary.withOpacity(0.06),
+              color: colors.primary.withValues(alpha: 0.06),
               blurRadius: 24,
               offset: const Offset(0, 16),
             )
@@ -276,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: colors.tertiaryContainer.withOpacity(0.3),
+                    color: colors.tertiaryContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -327,11 +327,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.surface.withOpacity(0.9),
+        color: colors.surface.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: colors.primary.withOpacity(0.05),
+            color: colors.primary.withValues(alpha: 0.05),
             blurRadius: 24,
             offset: const Offset(0, -4),
           )

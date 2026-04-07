@@ -14,6 +14,15 @@ import 'domain/usecases/auth_usecases.dart';
 import 'domain/usecases/diary_usecases.dart';
 import 'core/theme/theme_cubit.dart';
 import 'presentation/screens/profile_screen.dart';
+import 'presentation/screens/splash_screen.dart';
+import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/sign_in_screen.dart';
+import 'presentation/screens/editor_screen.dart';
+import 'presentation/screens/view_entry_screen.dart';
+import 'presentation/screens/calendar_screen.dart';
+import 'presentation/screens/search_screen.dart';
+import 'presentation/screens/export_screen.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -138,7 +138,7 @@ class ViewEntryScreen extends StatelessWidget {
                 color: colors.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
-                  BoxShadow(color: colors.primary.withOpacity(0.04), blurRadius: 24, offset: const Offset(0, 4))
+                  BoxShadow(color: colors.primary.withValues(alpha: 0.04), blurRadius: 24, offset: const Offset(0, 4))
                 ],
               ),
               child: Text(
