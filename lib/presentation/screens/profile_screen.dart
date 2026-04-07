@@ -101,29 +101,13 @@ class ProfileScreen extends StatelessWidget {
                   onTap: () {},
                 ),
                 const SizedBox(height: 40),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: () => _showSignOutDialog(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colors.errorContainer.withValues(alpha: 0.1),
-                      foregroundColor: colors.error,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: colors.error.withValues(alpha: 0.2)),
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.logout),
-                        SizedBox(width: 8),
-                        Text('Sign Out', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ],
-                    ),
+                ElevatedButton(
+                  onPressed: () => _showSignOutDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
                   ),
+                  child: const Text('Sign Out'),
                 ),
               ],
             ),
